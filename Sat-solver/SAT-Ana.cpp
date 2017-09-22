@@ -7,7 +7,7 @@ using namespace std;
 /* Como mejorar el SAT-solver:
  * - Cambiar la heurística de decisión: hay que decidir sobre qué variable y con qué signo
  *      -> Escogeré el literal que más veces se repita.
- * - Hacer la propagación más eficiente
+ * - Hacer la propagación más eficiente -> Jugar con la actividad de un literal
  */
 
 #define UNDEF -1
@@ -30,37 +30,68 @@ uint decisionLevel;
 
 // Vector de vectors pels literals:
 // Vector[numLiteral] = Vector de les posicions on es troben aquests literals.
-vector<vector<int>> positiveLiterals;
-vector<vector<int>> negativeLiterals;
-vector<int> topLiterals;
+vector<vector<int> > positiveLiterals;
+vector<vector<int> > negativeLiterals;
+vector<double> literalsActivity;
+
+const int INCREMENT = 1.0;
+const int TIME_TO_UPDATE = 1000;
+const int DECREASE = 2.0;
+int conflicts;
+int decs;
+
 
 void iniVectors(){
+    conflicts = 0;
+    decs = 0;
     positiveLiterals.resize(numVars + 1);
     negativeLiterals.resize(numVars + 1);
-    topLiterals.resize(numVars + 1);
+    literalsActivity.resize(numVars + 1, 0.0);
 }
 
-void setTopness(){
+// The activity vector has to be scaled from time to time.
+void itsTimeToUpdateTheActivity(){
+    for(uint i = 1; i < numVars; ++i){
+        literalsActivity[i] /= DECREASE;
+    }
+}
 
+void updateLiteralActivity(int index){
+    vector<int> literalClauses = clauses[index];
+    int size = literalClauses.size();
+    
+    for(int i = 0; i < size; ++i){
+        int lit = literalClauses[i];
+        if(lit < 0) lit = -lit;
+        literalsActivity[lit] += INCREMENT;
+    }        
+}
+
+void activityHeuristic(int index){
+    
+    if(conflicts%TIME_TO_UPDATE == 0)
+        itsTimeToUpdateTheActivity();
+    
+    updateLiteralActivity(index);
 }
 
 int getNextLiteralWithSuperHeuristic(){
-
     int superTop = 0;
     int topness = 0;
 
     for(uint i = 1; i <= numVars; ++i){
         if(model[i] == UNDEF){
-            if(topLiterals[i] > topness){
-                topness = topLiterals[i];
+            if(literalsActivity[i] > topness){
+                topness = literalsActivity[i];
                 superTop = i;
             }
         }
     }
+    ++decs;
     return superTop;
 }
 
-void readClauses( ){
+void readClauses(){
 
   // Skip comments
   char c = cin.get();
@@ -80,8 +111,14 @@ void readClauses( ){
     int lit;
     while (cin >> lit and lit != 0) {
         clauses[i].push_back(lit);
-        if(lit > 0) positiveClauses[lit].push_back(i);
-        else negativeClauses[-lit].push_back(i);
+        if(lit > 0) {
+            positiveLiterals[lit].push_back(i);
+            literalsActivity[lit] += INCREMENT;
+        }
+        else {
+            negativeLiterals[-lit].push_back(i);
+            literalsActivity[-lit] += INCREMENT;
+        }
     }
   }    
 }
@@ -110,25 +147,33 @@ bool propagateGivesConflict(){
 
     ++indexOfNextLitToPropagate;
 
-    for (uint i = 0; i < numClauses; ++i) {
+    for (uint i = 0; i < vec->size(); ++i) {
       bool someLitTrue = false;
       int numUndefs = 0;
       int lastLitUndef = 0;
 
       int point = (*vec)[i];
 
-      for (uint k = 0; not someLitTrue and k < clauses[point].size(); ++k){
-        int val = currentValueInModel(clauses[point][k]);
-	if (val == TRUE) someLitTrue = true;
-        else if (val == UNDEF){
-            ++numUndefs; lastLitUndef = clauses[point][k];
+        for (uint k = 0; not someLitTrue and k < clauses[point].size(); ++k){
+            int val = currentValueInModel(clauses[point][k]);
+            if (val == TRUE) someLitTrue = true;
+            else if (val == UNDEF){
+                ++numUndefs; 
+                lastLitUndef = clauses[point][k];
+            }
         }
-      }
 
-      if (not someLitTrue and numUndefs == 0) return true; // conflict! all lits false
-      else if (not someLitTrue and numUndefs == 1) setLiteralToTrue(lastLitUndef);	
+        if (not someLitTrue and numUndefs == 0) {
+            ++conflicts;
+            activityHeuristic(point);
+            return true; // conflict! all lits false
+        }
+        
+        else if (not someLitTrue and numUndefs == 1) 
+            setLiteralToTrue(lastLitUndef);	
     }    
   }
+  
   return false;
 }
 
@@ -146,13 +191,6 @@ void backtrack(){
   --decisionLevel;
   indexOfNextLitToPropagate = modelStack.size();
   setLiteralToTrue(-lit);  // reverse last decision
-}
-
-// Heuristic for finding the next decision literal:
-int getNextDecisionLiteral(){
-  for (uint i = 1; i <= numVars; ++i) // stupid heuristic:
-    if (model[i] == UNDEF) return i;  // returns first UNDEF var, positively
-  return 0; // reurns 0 when all literals are defined
 }
 
 
@@ -181,18 +219,32 @@ int main(){
     if (clauses[i].size() == 1) {
       int lit = clauses[i][0];
       int val = currentValueInModel(lit);
-      if (val == FALSE) {cout << "UNSATISFIABLE" << endl; return 10;}
+      if (val == FALSE) {
+          cout << "UNSATISFIABLE" << endl;
+          cout << decs << " decisions" << endl;
+          return 10;
+      }
       else if (val == UNDEF) setLiteralToTrue(lit);
     }
   
   // DPLL algorithm
   while (true) {
     while ( propagateGivesConflict() ) {
-      if ( decisionLevel == 0) { cout << "UNSATISFIABLE" << endl; return 10; }
+      if ( decisionLevel == 0) { 
+          cout << "UNSATISFIABLE" << endl; 
+          cout << decs << " decisions" << endl;
+          return 10; 
+      }
       backtrack();
     }
-    int decisionLit = getNextDecisionLiteral();
-    if (decisionLit == 0) { checkmodel(); cout << "SATISFIABLE" << endl; return 20; }
+    int decisionLit = getNextLiteralWithSuperHeuristic();
+    if (decisionLit == 0) { 
+        checkmodel(); 
+        cout << "SATISFIABLE" << endl; 
+        cout << decs << " decisions" << endl;
+        return 20; 
+        
+    }
     // start new decision level:
     modelStack.push_back(0);  // push mark indicating new DL
     ++indexOfNextLitToPropagate;
