@@ -32,22 +32,27 @@ uint decisionLevel;
 // Vector[numLiteral] = Vector de les posicions on es troben aquests literals.
 vector<vector<int> > positiveLiterals;
 vector<vector<int> > negativeLiterals;
+
 vector<double> literalsActivity;
 
 const int INCREMENT = 1.0;
 const int TIME_TO_UPDATE = 1000;
 const int DECREASE = 2.0;
+
 int conflicts;
 int decs;
 
 
-void iniVectors(){
+void initialize(){
+
     conflicts = 0;
     decs = 0;
+
     positiveLiterals.resize(numVars + 1);
     negativeLiterals.resize(numVars + 1);
     literalsActivity.resize(numVars + 1, 0.0);
 }
+
 
 // The activity vector has to be scaled from time to time.
 void itsTimeToUpdateTheActivity(){
@@ -56,6 +61,8 @@ void itsTimeToUpdateTheActivity(){
     }
 }
 
+
+// When a literal gives conflict, we update its activity.
 void updateLiteralActivity(int index){
     vector<int> literalClauses = clauses[index];
     int size = literalClauses.size();
@@ -67,6 +74,8 @@ void updateLiteralActivity(int index){
     }        
 }
 
+
+
 void activityHeuristic(int index){
     
     if(conflicts%TIME_TO_UPDATE == 0)
@@ -75,6 +84,8 @@ void activityHeuristic(int index){
     updateLiteralActivity(index);
 }
 
+
+// Get next literal with an activity heuristic
 int getNextLiteralWithSuperHeuristic(){
     int superTop = 0;
     int topness = 0;
@@ -91,6 +102,7 @@ int getNextLiteralWithSuperHeuristic(){
     return superTop;
 }
 
+
 void readClauses(){
 
   // Skip comments
@@ -104,7 +116,7 @@ void readClauses(){
   string aux;
   cin >> aux >> numVars >> numClauses;
   clauses.resize(numClauses);
-  iniVectors();
+  initialize();
 
   // Read clauses
   for (uint i = 0; i < numClauses; ++i) {
@@ -123,6 +135,7 @@ void readClauses(){
   }    
 }
 
+
 int currentValueInModel(int lit){
   if (lit >= 0) return model[lit];
   else {
@@ -131,15 +144,17 @@ int currentValueInModel(int lit){
   }
 }
 
+
 void setLiteralToTrue(int lit){
   modelStack.push_back(lit);
   if (lit > 0) model[lit] = TRUE;
   else model[-lit] = FALSE;		
 }
 
-bool propagateGivesConflict(){
-  while (indexOfNextLitToPropagate < modelStack.size()) {
 
+bool propagateGivesConflict(){
+
+  while (indexOfNextLitToPropagate < modelStack.size()) {
     vector<int>* vec;
     int lit = modelStack[indexOfNextLitToPropagate];
     if(lit <= 0) vec = &positiveLiterals[-lit];
@@ -166,14 +181,13 @@ bool propagateGivesConflict(){
         if (not someLitTrue and numUndefs == 0) {
             ++conflicts;
             activityHeuristic(point);
-            return true; // conflict! all lits false
+            return true;
         }
         
         else if (not someLitTrue and numUndefs == 1) 
             setLiteralToTrue(lastLitUndef);	
     }    
   }
-  
   return false;
 }
 
@@ -199,14 +213,19 @@ void checkmodel(){
     bool someTrue = false;
     for (uint j = 0; not someTrue and j < clauses[i].size(); ++j)
       someTrue = (currentValueInModel(clauses[i][j]) == TRUE);
+
     if (not someTrue) {
       cout << "Error in model, clause is not satisfied:";
-      for (uint j = 0; j < clauses[i].size(); ++j) cout << clauses[i][j] << " ";
+      
+      for (uint j = 0; j < clauses[i].size(); ++j)
+	cout << clauses[i][j] << " ";
+
       cout << endl;
       exit(1);
     }
   }  
 }
+
 
 int main(){ 
   readClauses(); // reads numVars, numClauses and clauses
@@ -229,14 +248,15 @@ int main(){
   
   // DPLL algorithm
   while (true) {
-    while ( propagateGivesConflict() ) {
-      if ( decisionLevel == 0) { 
+    while (propagateGivesConflict()) {
+      if (decisionLevel == 0) { 
           cout << "UNSATISFIABLE" << endl; 
           cout << decs << " decisions" << endl;
           return 10; 
       }
       backtrack();
     }
+
     int decisionLit = getNextLiteralWithSuperHeuristic();
     if (decisionLit == 0) { 
         checkmodel(); 
