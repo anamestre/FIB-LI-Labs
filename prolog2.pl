@@ -11,12 +11,18 @@
 L = [a,b,c,b,b,e,f]
 
 Escribe otro que elimina las repeticiones:
-?- flattenNoRepetitions( [a,[b,c,[b,b],e], f], L).
+?- flattenNoRepetitions([a,[b,c,[b,b],e], f], L).
 L = [a,b,c,e,f] */
 
 flatten([], []):- !.
 flatten(X, [X]):- X\=[_|_].
 flatten([L|List], FList):- flatten(L, L2), flatten(List, List2), append(L2, List2, FList).
+
+flattenNoRepetitions(L, RL):- flatten(L, L2), noRepes(L2, RL).
+
+noRepes([], []):- !.
+noRepes([L|List], [L|Res]):- \+member(L, List), noRepes(List, Res).
+noRepes([_|List], Res):- noRepes(List, Res).
 
 /*
 2. Tenemos una fila de cinco casas, con cinco vecinos con casas de colores diferentes, y cinco 
@@ -92,22 +98,31 @@ casas:- Sol = [[1, _, _, _, _, _],
       x . . . . . . . */
       
       
-reinas:- Table   =  [[x, ., ., ., ., ., ., .],
-                     [., x, ., ., ., ., ., .],
-                     [., ., x, ., ., ., ., .],
-                     [., ., ., x, ., ., ., .],
-                     [., ., ., ., x, ., ., .],
-                     [., ., ., ., ., x, ., .],
-                     [., ., ., ., ., ., x, .],
-                     [., ., ., ., ., ., ., x]],
-                     permutation(Table, PermutedTable),
-                     noAmenazan(PermutedTable),
-                     writeTable(PermutedTable).
-                     
-writeTable([]):- !.                                             
-writeTable([L|List]):- writeRow(L), nl, writeTable(List).
+queens :- permutation([1,2,3,4,5,6,7,8], PermutedList),
+          allOK(PermutedList),
+          printQueens(PermutedList).
 
-writeRow([]):- !.
-writeRow([L|List]):- write(L), write(' '), writeRow(List).
+% Se segur que no hi haura cap reina a la mateixa columna ni fila, 
+% nomes he de comprovar les diagonals
+allOK([]).
+allOK([L|List]):- checkQueen(L, List, 1), allOK(List).
 
-noAmenazan().
+checkQueen(_, [], _).
+checkQueen(L, [L2|List], Dist):- L - L2 =\= Dist,
+                                 L2 - L =\= Dist,
+                                 Dist2 is Dist + 1,
+                                 checkQueen(L, List, Dist2).
+          
+% Printing code          
+printQueens([]).
+printQueens([L|List]):- printRow(L), nl, printQueens(List).
+
+printRow(L):- printPart(L), write('X'), printPart2(L).
+
+printPart(1):- !.
+printPart(L):- write('.'), L2 is L - 1, printPart(L2).
+
+printPart2(8):- !.
+printPart2(L):- write('.'), L2 is L + 1, printPart2(L2).
+
+

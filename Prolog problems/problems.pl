@@ -138,3 +138,18 @@ gana(D1, D2):- findall([X,Y], (member(X, D1), member(Y, D2), X > Y), L), length(
     
     quants(_, [], 1).
     quants(L, [L|List], NumL):- quants(L, List, NewNumL), NumL is NewNumL + 1. -----> REFER!! */ 
+    
+% 11.   
+  esta_ordenada([]).
+  esta_ordenada([_]).
+  esta_ordenada([L1, L2|List]):- L1 < L2, esta_ordenada([L2|List]).
+  
+% 12. ordenacion con permutacion y esta_ordenada
+  ordenacion(L, SL):- permutation(L, SL), esta_ordenada(SL).
+
+% 18. palindromos -> No del tot correcte, hauria de treure les repeticions
+  palindromos(L):- permutation(L, L2), es_palindromo(L2), write(L2), nl, fail.
+  
+  es_palindromo([]).
+  es_palindromo([L|List]):- lastElement(List, Last), Last = L, 
+                            removeLast(List, NewList), es_palindromo(NewList).
