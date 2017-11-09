@@ -68,34 +68,36 @@ writeClauses:-
     eachHourAtLeastKnurses,
     nursesCantWorkWithinBlockedHours,
     eachNurseHasAtype,
-    eachNurseFollowsItsType, true.
+    eachNurseStartsOnce,
+    restingHours, true.
     
 
 % A cada hora es necessita un número mínim d'infermers segons needs([...]).
 eachHourAtLeastKnurses:- hour(H), needed(H, K), findall(worksNH-N-H, nurse(N), Lits), atLeast(K, Lits), fail.
 eachHourAtLeastKnurses.
 
-% 
-% TODO: Els infermers no poden treballar dins d'un rang d'hores.
+
+% Els infermers no poden treballar dins d'un rang d'hores.
 nursesCantWorkWithinBlockedHours:- nurseIDandBlocking(N, Bstart, Bend),
-                                   findall(worksNH-N-H, hourInRange(Bstart, Bend, H), Lits),
-                                   negateAll(Lits, NegLits), writeClause(NegLits), fail.
+                                   hourInRange(Bstart, Bend, H),
+                                   negate(worksNH-N-H, NegLit), writeClause([NegLit]), fail.
 nursesCantWorkWithinBlockedHours.
+
 
 % Cada infermer té exactament un tipus d'horari.
 eachNurseHasAtype:- nurse(N), findall(nurseType-N-T, type(T), Lits), exactly(1, Lits), fail.
 eachNurseHasAtype.
 
+% Cada infermer comença només un cop.
+eachNurseStartsOnce:- nurse(N), findall(startsNH-N-H, hour(H), Lits), exactly(1, Lits), fail.
+eachNurseStartsOnce.
+
 
 % TODO: Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans)
-eachNurseFollowsItsType:- nurse(N), hour(Hstart), type(T),
-                          workingHourForTypeAndStartH(T, Hstart, Hwork), negate(startsNH-N-Hstart, Neg), 
-                          writeClause([Neg, worksNH-N-Hwork]), fail.
-eachNurseFollowsItsType.                          
-
-
-
-
+restingHours:- nurse(N), hour(Hstart), type(T),
+               findall(worksNH-N-H, (hour(H), \+ workingHourForTypeAndStartH(T, Hstart, H)), Lits),
+               negateAll(Lits, NegLits), writeClause(NegLits), fail.
+restingHours.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
