@@ -67,9 +67,11 @@ hourInRange(Start,End,H):- Start>End, End1 is End+24-1, between(Start,End1,H1), 
 writeClauses:-
     eachHourAtLeastKnurses,
     nursesCantWorkWithinBlockedHours,
+    restingHours,
     eachNurseHasAtype,
     eachNurseStartsOnce,
-    restingHours, true.
+    work6hours,
+    true.
     
 
 % A cada hora es necessita un número mínim d'infermers segons needs([...]).
@@ -94,10 +96,12 @@ eachNurseStartsOnce.
 
 
 % TODO: Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans)
-restingHours:- nurse(N), hour(Hstart), type(T),
-               findall(worksNH-N-H, (hour(H), \+ workingHourForTypeAndStartH(T, Hstart, H)), Lits),
-               negateAll(Lits, NegLits), writeClause(NegLits), fail.
+restingHours:- nurse(N), hour(Hstart), type(T), hour(HnotWork), \+workingHourForTypeAndStartH(T, Hstart, HnotWork),
+               writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, \+worksNH-N-HnotWork]), fail.
 restingHours.
+
+work6hours:- nurse(N), findall(worksNH-N-H, hour(H), Lits), exactly(6, Lits), fail.
+work6hours.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
