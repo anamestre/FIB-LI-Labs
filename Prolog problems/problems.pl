@@ -134,10 +134,17 @@ gana(D1, D2):- findall([X,Y], (member(X, D1), member(Y, D2), X > Y), L), length(
 
 % 10. card(L) = escribe la lista que dice cuántas veces aparece cada elemento en L.
 % card( [1,2,1,5,1,3,3,7] ) escribirá [[1,3],[2,1],[5,1],[3,2],[7,1]].
-    /*card([L|List]):- quants(L, List, NumL), write(L, NumL), card(List), !, fail.
-    
-    quants(_, [], 1).
-    quants(L, [L|List], NumL):- quants(L, List, NewNumL), NumL is NewNumL + 1. -----> REFER!! */ 
+ card(List):- cards(List, Res), write(Res).
+ 
+ cards([], []).
+ cards([L|List], [[L, NumL]|Res]):- cards(List, ResList),
+               add_card([L, NewNumL], ResList, Res), !,
+               NumL is NewNumL+1.
+cards([L|List], [[L, 1]|Res]):- cards(List, Res).
+
+% FinalL = List ++ [L]
+add_card(L, List, FinalL):- append(L1, [L|L2], FinalL),
+    						append(L1, L2, List).
     
 % 11.   
   esta_ordenada([]).
