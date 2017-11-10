@@ -154,7 +154,7 @@ add_card(L, List, FinalL):- append(L1, [L|L2], FinalL),
 % 12. ordenacion con permutacion y esta_ordenada
   ordenacion(L, SL):- permutation(L, SL), esta_ordenada(SL).
 
-% 18. palindromos -> No del tot correcte, hauria de treure les repeticions
+% 18. palindromos -> El setof treu les repeticions.
   palindromos(L):- setof(L2, (permutation(L, L2), es_palindromo(L2)), Res), write(Res).
   
   es_palindromo([]).
