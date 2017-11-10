@@ -155,7 +155,7 @@ add_card(L, List, FinalL):- append(L1, [L|L2], FinalL),
   ordenacion(L, SL):- permutation(L, SL), esta_ordenada(SL).
 
 % 18. palindromos -> No del tot correcte, hauria de treure les repeticions
-  palindromos(L):- permutation(L, L2), es_palindromo(L2), write(L2), nl, fail.
+  palindromos(L):- setof(L2, (permutation(L, L2), es_palindromo(L2)), Res), write(Res).
   
   es_palindromo([]).
   es_palindromo([L|List]):- lastElement(List, Last), Last = L, 
