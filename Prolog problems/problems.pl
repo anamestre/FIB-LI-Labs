@@ -153,6 +153,17 @@ add_card(L, List, FinalL):- append(L1, [L|L2], FinalL),
   
 % 12. ordenacion con permutacion y esta_ordenada
   ordenacion(L, SL):- permutation(L, SL), esta_ordenada(SL).
+  
+% 17. diccionario(A, N) = dado un alfabeto A y un natural N, escribe las N permutaciones de A en orden alfabético.
+   diccionario(A, N):- palabras(A, N, Res), printPalabras(Res), write(' '),  fail.
+
+   palabras(_, 0, []):- !.
+   palabras(A, N, [Pal|Res]):- member(Pal, A),
+             N1 is N - 1,
+             palabras(A, N1, Res).
+
+   printPalabras([]).
+   printPalabras([R|Res]):- write(R), printPalabras(Res).
 
 % 18. palindromos -> El setof treu les repeticions.
   palindromos(L):- setof(L2, (permutation(L, L2), es_palindromo(L2)), Res), write(Res).
