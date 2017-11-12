@@ -69,9 +69,9 @@ gana(D1, D2):- findall([X,Y], (member(X, D1), member(Y, D2), X > Y), L), length(
 
 
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEMES PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEMES PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % 2. prod(L, P)
@@ -150,10 +150,42 @@ card_in_list(L, List, FinalL):- append(L1, [L|L2], List),
   esta_ordenada([]).
   esta_ordenada([_]).
   esta_ordenada([L1, L2|List]):- L1 < L2, esta_ordenada([L2|List]).
+
   
-% 12. ordenacion con permutacion y esta_ordenada
-  ordenacion(L, SL):- permutation(L, SL), esta_ordenada(SL).
+% 12. ordenacion con permutacion y esta_ordenada  
+  ordenacion(L, SL):- permutation(L, SL), esta_ordenada(SL).  
   
+  
+% 14.Ordenación por inserción
+
+  ordenacionInsercion( [], [] ).
+  ordenacionInsercion([L|L1], L2):- ordenacionInsercion(L1, L1ord),
+                                                     insert(L, L1ord, L2).
+                                                     
+  insert(L, [], [L]).
+  insert(L, [K|List], [L, K|List]):- L =< K.
+  insert(L, [K|List], [K|Res]):- L > K,  insert(L, List, Res).
+
+% 16. Ordenación por fusión -> Merge sort.
+
+split([],[],[]).
+split([A],[A],[]).
+split([A,B|R],[A|Ra],[B|Rb]) :-  split(R,Ra,Rb).
+
+mergeSort([], []):- !.
+mergeSort([L], [L]):- !.
+mergeSort(List, Res):- split(List, L1, L2), % si aqui faig servir append, em dóna out of local stack
+                                    mergeSort(L1, L1sort),
+                                    mergeSort(L2, L2sort),
+                                    merge(L1sort, L2sort, Res).
+                                    
+merge(L, [], L):- !.                                
+merge([], L, L):- !.
+merge([L1|List1], [L2|List2], [L1|Res]):- L1 =< L2, 
+                                                                merge(List1, [L2|List2], Res).
+merge([L1|List1], [L2|List2], [L2|Res]):- merge([L1|List1], List2, Res).
+
+
 % 17. diccionario(A, N) = dado un alfabeto A y un natural N, escribe las N permutaciones de A en orden alfabético.
    diccionario(A, N):- palabras(A, N, Res), printPalabras(Res), write(' '),  fail.
 
@@ -205,3 +237,10 @@ writeSuma([S, E, N, D, M, O, R, Y]):-
                     write('      = '), write(S3), nl,
                     write( '----------------------------------------' ), nl, 
                     write('MONEY = '), write(S4).
+                    
+                    
+                    
+% 21. 3 misioneros y 3 caníbales desean cruzar un río. 1 canoa para 1 o 2 personas : misioneros o caníbales.
+% si los misioneros quedan en minoría en cualquier orilla, los caníbales se los comerán.
+  
+  % misionerosYcanibales:- 
