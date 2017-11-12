@@ -1,7 +1,7 @@
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SESSIÓ 3 - 4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TEORIA I INTRODUCCIÓ A PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SESSIÓ 3 - 4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TEORIA I INTRODUCCIÓ A PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 /*
@@ -70,7 +70,7 @@ gana(D1, D2):- findall([X,Y], (member(X, D1), member(Y, D2), X > Y), L), length(
 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEMES PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEMES PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -138,13 +138,13 @@ gana(D1, D2):- findall([X,Y], (member(X, D1), member(Y, D2), X > Y), L), length(
  
  cards([], []).
  cards([L|List], [[L, NumL]|Res]):- cards(List, ResList),
-               add_card([L, NewNumL], ResList, Res), !,
+               card_in_list([L, NewNumL], ResList, Res), !,
                NumL is NewNumL+1.
 cards([L|List], [[L, 1]|Res]):- cards(List, Res).
 
-% FinalL = List ++ [L]
-add_card(L, List, FinalL):- append(L1, [L|L2], FinalL),
-    						append(L1, L2, List).
+% FinalL = List - [L]
+card_in_list(L, List, FinalL):- append(L1, [L|L2], List),
+    						append(L1, L2, FinalL).
     
 % 11.   
   esta_ordenada([]).
@@ -171,3 +171,37 @@ add_card(L, List, FinalL):- append(L1, [L|L2], FinalL),
   es_palindromo([]).
   es_palindromo([L|List]):- lastElement(List, Last), Last = L, 
                             removeLast(List, NewList), es_palindromo(NewList).
+                            
+% 19. Qué 8 dígitos diferentes tenemos que asignar a S, E, N, D, M, O, R, Y para que sea:
+% SEND + MORE = MONEY?
+  sendMoreMoney:-  Letters = [S, E, N, D, M, O, R, Y, _, _],
+                                Numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                                permutation(Letters, Numbers),
+                                S1 is 1000 * S + 100 * E + 10 * N + D +
+                                         1000 * M + 100 * O + 10 * R + E,
+                                S1 is 10000 * M + 1000 * O + 100 * N + 10 * E + Y,
+                                writeLetters(Letters), ! .
+                                
+writeLetters([S, E, N, D, M, O, R, Y, _, _]):-
+                    write('S = '), write(S), nl,
+                    write('E = '), write(E), nl,
+                    write('N = '), write(N), nl,
+                    write('D = '), write(D), nl,
+                    write('M = '), write(M), nl,
+                    write('O = '), write(O), nl,                                                 
+                    write('R = '), write(R), nl,
+                    write('Y = '), write(Y), nl,
+                    writeSuma([S, E, N, D, M, O, R, Y]).
+                    
+                    
+writeSuma([S, E, N, D, M, O, R, Y]):-
+                    S1 is 1000 * S + 100 * E + 10 * N + D,
+                    S2 is 1000 * M + 100 * O + 10 * R + E,
+                    S3 is S1 + S2,
+                    S4 is  10000 * M + 1000 * O + 100 * N + 10 * E + Y,
+                    write('SEND = '), write(S1), 
+                    write(' + '), 
+                    write('MORE = '), write(S2), nl,
+                    write('      = '), write(S3), nl,
+                    write( '----------------------------------------' ), nl, 
+                    write('MONEY = '), write(S4).
