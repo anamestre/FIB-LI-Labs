@@ -56,6 +56,9 @@ workingHourForTypeAndStartH(2,StartH,H):- between(5,7,I), H is (StartH+I) mod 24
 hourInRange(Start,End,H):- Start<End, End1 is End-1,    between(Start,End1,H).
 hourInRange(Start,End,H):- Start>End, End1 is End+24-1, between(Start,End1,H1), H is H1 mod 24.
 
+workingHour(StartH, H):- between(0, 1, I), H is (StartH+I) mod 24.
+workingHour(StartH, H):- between(3, 4, I), H is (StartH+I) mod 24.
+workingHour(StartH, H):- between(6, 7, I), H is (StartH+I) mod 24.
 
 
 
@@ -69,7 +72,7 @@ writeClauses:-
     nursesCantWorkWithinBlockedHours,
     ifStartsThenWorks,
     restingHours,
-    eachNurseHasAtype,
+    %eachNurseHasAtype,
     eachNurseStartsOnce,
     true.
     
@@ -86,22 +89,22 @@ nursesCantWorkWithinBlockedHours.
 
 
 % Cada infermer té exactament un tipus d'horari.
-eachNurseHasAtype:- nurse(N), findall(nurseType-N-T, type(T), Lits), exactly(1, Lits), fail.
-eachNurseHasAtype.
+%eachNurseHasAtype:- nurse(N), findall(nurseType-N-T, type(T), Lits), exactly(1, Lits), fail.
+%eachNurseHasAtype. 
 
 % Cada infermer comença només un cop.
 eachNurseStartsOnce:- nurse(N), findall(startsNH-N-H, hour(H), Lits), exactly(1, Lits), fail.
 eachNurseStartsOnce.
 
 
-% TODO: Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans)
-restingHours:- nurse(N), hour(Hstart), type(T), hour(HnotWork), \+workingHourForTypeAndStartH(T, Hstart, HnotWork),
-               writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, \+worksNH-N-HnotWork]), fail.
+% Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans)
+restingHours:- nurse(N), hour(Hstart), hour(HnotWork), \+workingHour(Hstart, HnotWork),
+               writeClause([\+startsNH-N-Hstart, \+worksNH-N-HnotWork]), fail.
 restingHours.  
 
-ifStartsThenWorks:- nurse(N), hour(Hstart), type(T), hour(H), 
-                    workingHourForTypeAndStartH(T, Hstart, H),
-                    writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, worksNH-N-H]), fail.
+ifStartsThenWorks:- nurse(N), hour(Hstart), hour(H), 
+                    workingHour(Hstart, H),
+                    writeClause([\+startsNH-N-Hstart, worksNH-N-H]), fail.
 ifStartsThenWorks.
 
 
