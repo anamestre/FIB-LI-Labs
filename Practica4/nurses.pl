@@ -60,9 +60,10 @@ hourInRange(Start,End,H):- Start>End, End1 is End+24-1, between(Start,End1,H1), 
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ------------ WRITE CLAUSES ------------ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% ------------ WRITE CLAUSES ------------ %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 writeClauses:-
     eachHourAtLeastKnurses,
@@ -94,20 +95,21 @@ eachNurseStartsOnce:- nurse(N), findall(startsNH-N-H, hour(H), Lits), exactly(1,
 eachNurseStartsOnce.
 
 
-% TODO: Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans)
+% Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans) -> Hores que no pot treballar
 restingHours:- nurse(N), hour(Hstart), type(T), hour(HnotWork), \+workingHourForTypeAndStartH(T, Hstart, HnotWork),
                writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, \+worksNH-N-HnotWork]), fail.
 restingHours.  
 
+% Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans) -> Hores que ha de treballar
 ifStartsThenWorks:- nurse(N), hour(Hstart), type(T), hour(H), 
                     workingHourForTypeAndStartH(T, Hstart, H),
                     writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, worksNH-N-H]), fail.
 ifStartsThenWorks.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ------------ DISPLAY SOL ------------ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%   ------------ DISPLAY SOL ------------ %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 displaySol(M):- nl,write('       00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24'),nl,
                 nurse(N), format('~n~s:',[N]), hour(H), writeHour(M,N,H), fail.
 displaySol(M):- nl,write('Total:  '),hour(H),findall(N,member(worksNH-N-H,M),L),length(L,K),format(' ~d ',[K]),fail.
@@ -125,10 +127,11 @@ writeHour(_,_,_):-                               write('   '),!.
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Everything below is given as a standard library, reusable for solving 
 %    with SAT many different problems.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % Express that Var is equivalent to the disjunction of Lits:
 expressOr( Var, Lits ):- member(Lit,Lits), negate(Lit,NLit), writeClause([ NLit, Var ]), fail.

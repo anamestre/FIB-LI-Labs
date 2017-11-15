@@ -1,8 +1,8 @@
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SESSIÓ 3 - 4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TEORIA I INTRODUCCIÓ A PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%% SESSIÓ 3 - 4 %%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%% TEORIA I INTRODUCCIÓ A PROLOG %%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 /*
  "is" serveix per evaluar expressions aritmètiques
@@ -69,9 +69,9 @@ gana(D1, D2):- findall([X,Y], (member(X, D1), member(Y, D2), X > Y), L), length(
 
 
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEMES PROLOG %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%% PROBLEMES PROLOG %%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % 2. prod(L, P)
@@ -83,7 +83,7 @@ gana(D1, D2):- findall([X,Y], (member(X, D1), member(Y, D2), X > Y), L), length(
      pescalar([L1|List1], [L2|List2], R):- pescalar(List1, List2, R1), R is R1 + L1*L2.
      
 % 4. interseccion(L1, L2, L).
-%    union(L1, L2, L).
+    % union(L1, L2, L).
 
     %interseccion([X|L1], [X|L2], [X|L]):- interseccion(L1, L2, L).
     % acabar
@@ -156,8 +156,8 @@ card_in_list(L, List, FinalL):- append(L1, [L|L2], List),
   ordenacion(L, SL):- permutation(L, SL), esta_ordenada(SL).  
   
   
+  
 % 14.Ordenación por inserción
-
   ordenacionInsercion( [], [] ).
   ordenacionInsercion([L|L1], L2):- ordenacionInsercion(L1, L1ord),
                                                      insert(L, L1ord, L2).
@@ -166,8 +166,8 @@ card_in_list(L, List, FinalL):- append(L1, [L|L2], List),
   insert(L, [K|List], [L, K|List]):- L =< K.
   insert(L, [K|List], [K|Res]):- L > K,  insert(L, List, Res).
 
+  
 % 16. Ordenación por fusión -> Merge sort.
-
 split([],[],[]).
 split([A],[A],[]).
 split([A,B|R],[A|Ra],[B|Rb]) :-  split(R,Ra,Rb).
@@ -197,13 +197,15 @@ merge([L1|List1], [L2|List2], [L2|Res]):- merge([L1|List1], List2, Res).
    printPalabras([]).
    printPalabras([R|Res]):- write(R), printPalabras(Res).
 
+   
 % 18. palindromos -> El setof treu les repeticions.
   palindromos(L):- setof(L2, (permutation(L, L2), es_palindromo(L2)), Res), write(Res).
   
   es_palindromo([]).
   es_palindromo([L|List]):- lastElement(List, Last), Last = L, 
                             removeLast(List, NewList), es_palindromo(NewList).
-                            
+ 
+ 
 % 19. Qué 8 dígitos diferentes tenemos que asignar a S, E, N, D, M, O, R, Y para que sea:
 % SEND + MORE = MONEY?
   sendMoreMoney:-  Letters = [S, E, N, D, M, O, R, Y, _, _],
