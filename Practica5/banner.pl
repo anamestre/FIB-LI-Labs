@@ -73,7 +73,7 @@ cell(X,Y):-                 widthBanner(W), heightBanner(H), between(1,W,X), bet
 % Should be completed
 % Write clauses imposing also that at most K pieces can be used
 writeClauses(K):-
-    %eachCeallAtMostOnePiece,
+    %eachCellAtMostOnePiece,
     eachPieceAtMostOne,
     ifPieceStartsThenPieceCells,
     ifBannerXthenPaint,
@@ -86,8 +86,8 @@ piecesUsed(M,K):-
     true.
 
     
-eachCeallAtMostOnePiece:- cell(X, Y), findall(pieceCell-P-X-Y, piece(P), Lits), atMost(1, Lits), fail.
-eachCeallAtMostOnePiece.
+eachCellAtMostOnePiece:- cell(X, Y), findall(pieceCell-P-X-Y, piece(P), Lits), atMost(1, Lits), fail.
+eachCallAtMostOnePiece.
 
 /*
 fitsBanner(P, X, Y):- cell(X, Y),
