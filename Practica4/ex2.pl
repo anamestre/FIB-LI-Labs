@@ -9,8 +9,6 @@ symbolicOutput(0).  % set to 1 to see symbolic output only; 0 otherwise.
 %% Also, each nurse has a range of hours (s)he cannot work.
 %% Find working hours for each nurse given all constraints.
 
-% shifted(N1,N2):-  N2 has the same schedule shifted one hour to the right.
-
 
 %%%% Input example: %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -28,8 +26,8 @@ nurseIDandBlocking(nurse11,  6, 14).
 nurseIDandBlocking(nurse12,  6, 14).
 nurseIDandBlocking(nurse13,  6, 14).
 nurseIDandBlocking(nurse14, 14, 22).
-shifted(nurse01, nurse02).
-shifted(nurse13, nurse14).
+incompatible(nurse02,nurse03).
+incompatible(nurse11,nurse12).
 
 % each H-N means "N nurses needed during the hour starting at H".  E.g. 17-3: 3 nurses in 17:00-18:00.
 needs([ 0-1, 1-2, 2-1, 3-1, 4-2, 5-2, 6-3, 7-3, 8-4, 9-4,10-4,11-3,
@@ -75,7 +73,7 @@ writeClauses:-
     restingHours,
     eachNurseHasAtype,
     eachNurseStartsOnce,
-    shiftedSchedules,
+    incompatibleNurses,
     true.
     
 % A cada hora es necessita un número mínim d'infermers segons needs([...]).
@@ -109,14 +107,9 @@ ifStartsThenWorks:- nurse(N), hour(Hstart), type(T), hour(H),
                     writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, worksNH-N-H]), fail.
 ifStartsThenWorks.
 
-shiftedSchedules:- nurse(N1), nurse(N2), shifted(N1, N2),
-                              type(T), hour(Hs1), Hs2 is Hs1 + 1, hour(Hs2),
-                              writeClause([\+startsNH-N1-Hs1, \+nurseType-N1-T, startsNH-N2-Hs2]),
-                              writeClause([\+startsNH-N1-Hs1, \+nurseType-N1-T, nurseType-N2-T]), fail.
-shiftedSchedules.
-                              
-                              
-                              
+incompatibleNurses:- nurse(N1), nurse(N2), incompatible(N1, N2),
+                     hour(H), writeClause([\+worksNH-N1-H, \+worksNH-N2-H]), fail.
+incompatibleNurses.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

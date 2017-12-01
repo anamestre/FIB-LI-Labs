@@ -9,8 +9,6 @@ symbolicOutput(0).  % set to 1 to see symbolic output only; 0 otherwise.
 %% Also, each nurse has a range of hours (s)he cannot work.
 %% Find working hours for each nurse given all constraints.
 
-% shifted(N1,N2):-  N2 has the same schedule shifted one hour to the right.
-
 
 %%%% Input example: %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -28,8 +26,6 @@ nurseIDandBlocking(nurse11,  6, 14).
 nurseIDandBlocking(nurse12,  6, 14).
 nurseIDandBlocking(nurse13,  6, 14).
 nurseIDandBlocking(nurse14, 14, 22).
-shifted(nurse01, nurse02).
-shifted(nurse13, nurse14).
 
 % each H-N means "N nurses needed during the hour starting at H".  E.g. 17-3: 3 nurses in 17:00-18:00.
 needs([ 0-1, 1-2, 2-1, 3-1, 4-2, 5-2, 6-3, 7-3, 8-4, 9-4,10-4,11-3,
@@ -47,14 +43,26 @@ needs([ 0-1, 1-2, 2-1, 3-1, 4-2, 5-2, 6-3, 7-3, 8-4, 9-4,10-4,11-3,
 
 nurse(N):- nurseIDandBlocking(N,_,_).
 hour(H):- between(0,23,H).
-type(T):- between(1,2,T).
+type(T):- between(1,4,T).
 needed(H,N):- needs(L), member(H-N,L).
 
 % Em retorna a quina hora estara treballant cada infermer segons el seu tipus de torn i segons a quina hora comença.
-workingHourForTypeAndStartH(1,StartH,H):- between(0,2,I), H is (StartH+I) mod 24. %Type=1: WWWRWWW
-workingHourForTypeAndStartH(1,StartH,H):- between(4,6,I), H is (StartH+I) mod 24.
-workingHourForTypeAndStartH(2,StartH,H):- between(0,2,I), H is (StartH+I) mod 24. %Type=2: WWWRRWWW
-workingHourForTypeAndStartH(2,StartH,H):- between(5,7,I), H is (StartH+I) mod 24.
+workingHourForTypeAndStartH(1,StartH,H):- between(0,1,I), H is (StartH+I) mod 24. %Type=1: WWWRWWW
+workingHourForTypeAndStartH(1,StartH,H):- between(3,4,I), H is (StartH+I) mod 24.
+workingHourForTypeAndStartH(1,StartH,H):- between(6,7,I), H is (StartH+I) mod 24.
+
+workingHourForTypeAndStartH(2,StartH,H):- between(0,1,I), H is (StartH+I) mod 24. %Type=2: WWWRRWWW
+workingHourForTypeAndStartH(2,StartH,H):- between(4,5,I), H is (StartH+I) mod 24.
+workingHourForTypeAndStartH(2,StartH,H):- between(8,9,I), H is (StartH+I) mod 24.
+
+workingHourForTypeAndStartH(3,StartH,H):- between(0,1,I), H is (StartH+I) mod 24. %Type=2: WW R WW RR WW
+workingHourForTypeAndStartH(3,StartH,H):- between(3,4,I), H is (StartH+I) mod 24.
+workingHourForTypeAndStartH(3,StartH,H):- between(7,8,I), H is (StartH+I) mod 24.
+
+workingHourForTypeAndStartH(4,StartH,H):- between(0,1,I), H is (StartH+I) mod 24. %Type=2: WW RR WW R WW
+workingHourForTypeAndStartH(4,StartH,H):- between(4,5,I), H is (StartH+I) mod 24.
+workingHourForTypeAndStartH(4,StartH,H):- between(7,8,I), H is (StartH+I) mod 24.
+
 
 % Controla que sigui una hora correcta entre Start i End.
 hourInRange(Start,End,H):- Start<End, End1 is End-1,    between(Start,End1,H).
@@ -75,7 +83,6 @@ writeClauses:-
     restingHours,
     eachNurseHasAtype,
     eachNurseStartsOnce,
-    shiftedSchedules,
     true.
     
 % A cada hora es necessita un número mínim d'infermers segons needs([...]).
@@ -99,7 +106,7 @@ eachNurseStartsOnce:- nurse(N), findall(startsNH-N-H, hour(H), Lits), exactly(1,
 eachNurseStartsOnce.
 
 
-% Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans)
+%  Cada infermer ha de seguir el seu tipus d'horari. (1 o 2 hores de descans)
 restingHours:- nurse(N), hour(Hstart), type(T), hour(HnotWork), \+workingHourForTypeAndStartH(T, Hstart, HnotWork),
                writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, \+worksNH-N-HnotWork]), fail.
 restingHours.  
@@ -108,15 +115,6 @@ ifStartsThenWorks:- nurse(N), hour(Hstart), type(T), hour(H),
                     workingHourForTypeAndStartH(T, Hstart, H),
                     writeClause([\+startsNH-N-Hstart, \+nurseType-N-T, worksNH-N-H]), fail.
 ifStartsThenWorks.
-
-shiftedSchedules:- nurse(N1), nurse(N2), shifted(N1, N2),
-                              type(T), hour(Hs1), Hs2 is Hs1 + 1, hour(Hs2),
-                              writeClause([\+startsNH-N1-Hs1, \+nurseType-N1-T, startsNH-N2-Hs2]),
-                              writeClause([\+startsNH-N1-Hs1, \+nurseType-N1-T, nurseType-N2-T]), fail.
-shiftedSchedules.
-                              
-                              
-                              
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
