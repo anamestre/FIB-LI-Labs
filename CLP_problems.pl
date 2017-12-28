@@ -1,6 +1,9 @@
+
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%% CONSTRAINT LOGIC PROGRAMMING %%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+:- use_module(library(clpfd)).
 
 
 
@@ -55,3 +58,26 @@ oneStep([FromX, FromY], [ToX, ToY]):- member([StepX, StepY], [[1, 2], [2, 1]]),
     								  ToY is SignY * StepY,
     								  between(1, 8, ToX),
     								  between(1, 8, ToY).
+
+
+
+
+% Fall 2014
+% Consider two groups of 10 people each. In the first group, as expected, the percentage of people with lung 
+% cancer among smokers is higher than among non-smokers. In the second group, the same is the case. 
+% But if we consider the 20 people of the two groups together, then the situation is the opposite: 
+% the proportion of people with lung cancer is higher among non-smokers than among smokers! 
+% Can this be true? Write a little Prolog program to find it out.
+
+num(X):- between(1, 7, X). 
+
+p:- num(SC1), num(SNC1),	 % Group 1, Smoker with cancer, smoker without cancer
+    num(NSC1), num(NSNC1),	 % Group 1, Non-smoker with cancer, non-smoker without cancer
+    10 is SC1 + SNC1 + NSC1 + NSNC1,
+    SC1 / (SC1 + SNC1) > NSC1 / (NSC1 + NSNC1),
+    num(SC2), num(SNC2), 	% Group 2, Smoker with cancer, smoker without cancer
+    num(NSC2), num(NSNC2),	% Group 2, Non-smoker with cancer, non-smoker without cancer
+    10 is SC2 + SNC2 + NSC2 + NSNC2,
+    SC2 / (SC2 + SNC2) > NSC2 / (NSC2 + NSNC2),
+    (SC1 + SC2) / (SC1 + SC2 + SNC1 + SNC2) < (NSC1 + NSC2) / (NSC1 + NSC2 + NSNC1 + NSNC2),
+    write([SC1, SNC1, NSC1, NSNC1, SC2, SNC2, NSC2, NSNC2]), nl, fail.
