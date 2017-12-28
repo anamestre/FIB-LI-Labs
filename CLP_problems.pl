@@ -1,3 +1,36 @@
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%% CONSTRAINT LOGIC PROGRAMMING %%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+% Spring 2016
+% Complete the following graph coloring program (see problem 2). 
+% Do makeConstraints recursively, using #\= and the built-in predicate nth1(I,L,X) 
+% (“the Ith element of the list L is X”).
+
+numVertices(5).
+edges([1-2, 1-3, 2-3, 2-4, 2-5, 3-5]).
+numColors(3).
+
+main:- 	numVertices(N), edges(Edges), 
+	   	listOfNPrologVars(N,Vars), numVertices(K),
+		Vars ins 1..K,
+		makeConstraints(Edges,Vars),
+    	label(Vars),
+		write(Vars), nl.
+
+makeConstraints([], _).
+makeConstraints([X-Y|Edges], Vars):- nth1(X, Vars, ColorX),
+    								 nth1(Y, Vars, ColorY),
+    								 ColorX #\= ColorY,
+    								 makeConstraints(Edges, Vars).
+                
+listOfNPrologVars(N, Vars):- length(Vars, N).
+
+
+
+
 % Spring 2015
 % Write a Prolog predicate shortest([I1,J1], [I2,J2]) that writes to the output the shortest path
 % on a chess board a horse needs to go from square [I1,J2] to square[I2,J2]. 
