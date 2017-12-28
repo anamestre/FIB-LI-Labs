@@ -7,6 +7,31 @@
 
 
 
+% Fall 2016
+% Write a program return(L,A) in swi prolog (using library(clpfd) or not, feel free) that 
+% outputs (writes) the minimal number of coins needed for returning the amount A if (infinitely many) 
+% coins of each value of the list L are available. Two examples:
+
+% ?-return([1,5,6],10). 		  % writes 2 (since 2*5 = 10).
+% ?-return([1,2,5,13,17,35,157],361).  % writes 5 (since 1*13 + 2*17 + 2*157 = 361).
+
+return(L, A):- length(L, Size), length(Vars, Size),
+    		   Vars ins 0..A,
+    		   sum(Vars, NumCoins), % Quantitat de monedes
+    		   totalValueExp(Vars, L, Value),
+    		   Value #= A,
+    		   labeling([min(NumCoins)], Vars),
+    		   S is NumCoins, write(S), nl, !.
+
+sum([], 0):- !.
+sum([V|Vars], Num):- sum(Vars, Num1), Num is V + Num1.
+
+totalValueExp([], [], 0):- !.
+totalValueExp([V|Vs], [C|Cs], V*C + Expr):- totalValueExp(Vs, Cs, Expr), !.
+
+
+
+
 % Spring 2016
 % Complete the following graph coloring program (see problem 2). 
 % Do makeConstraints recursively, using #\= and the built-in predicate nth1(I,L,X) 
