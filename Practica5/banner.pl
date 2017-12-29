@@ -73,7 +73,7 @@ cell(X,Y):-                 widthBanner(W), heightBanner(H), between(1,W,X), bet
 % Should be completed
 % Write clauses imposing also that at most K pieces can be used
 writeClauses(K):-
-    %eachCellAtMostOnePiece,
+    eachCeallAtMostOnePiece,
     eachPieceAtMostOne,
     ifPieceStartsThenPieceCells,
     ifBannerXthenPaint,
@@ -82,12 +82,12 @@ writeClauses(K):-
 % SHOULD BE MODIFIED!!!!
 % Given model M, computes K (number of pieces used in the model)
 piecesUsed(M,K):-
-    K is 10, 
+    K is 20, 
     true.
 
     
-eachCellAtMostOnePiece:- cell(X, Y), findall(pieceCell-P-X-Y, piece(P), Lits), atMost(1, Lits), fail.
-eachCallAtMostOnePiece.
+eachCeallAtMostOnePiece:- cell(X, Y), findall(pieceCell-P-X-Y, piece(P), Lits), atMost(1, Lits), fail.
+eachCeallAtMostOnePiece.
 
 /*
 fitsBanner(P, X, Y):- cell(X, Y),
@@ -95,9 +95,7 @@ fitsBanner(P, X, Y):- cell(X, Y),
                                  EndW is X + SizeW - 1,
                                  EndH is Y + SizeH - 1,
                                  cell(EndW, EndH). */
-
-% For a piece P with starting coordinates Xstart and Ystart, fails if 
-% P does not fit inside the banner.
+                                 
 fitsBanner(P, Xstart, Ystart):- pieceSize(P, SizeW, SizeH),
                                                 widthBanner(Wbanner),
                                                 heightBanner(Hbanner),
@@ -107,14 +105,9 @@ fitsBanner(P, Xstart, Ystart):- pieceSize(P, SizeW, SizeH),
                                                 between(1, EndH, Ystart).
 
 
-% Each piece should only be placed at most one time.
 eachPieceAtMostOne:- piece(P), findall(pieceStarts-P-X-Y, fitsBanner(P, X, Y), Lits), atMost(1, Lits), fail.
 eachPieceAtMostOne.
 
-
-% For a piece P and a couple of coordinates Wstart and Hstart,
-% if it fits the banner, then W1 and H1 are cells that P fills 
-% inside the banner.
 getCellPositions(P, Wstart, Hstart, W1, H1):- pieceSize(P, Wsize, Hsize),
                                                                        EndW is Wstart + Wsize - 1,
                                                                        EndH is Hstart + Hsize - 1,
@@ -122,9 +115,6 @@ getCellPositions(P, Wstart, Hstart, W1, H1):- pieceSize(P, Wsize, Hsize),
                                                                        between(Hstart, EndH, H1),
                                                                        between(Wstart, EndW, W1).
 
-
-% For every piece P that starts in a cell, then its respective cells
-% should be filled too by this piece P.
 ifPieceStartsThenPieceCells:- piece(P), cell(Wstart, Hstart), cell(Wi, Hi),
                                                getCellPositions(P, Wstart, Hstart, Wi, Hi),
                                                negate(pieceStarts-P-Wstart-Hstart, NegStart),
