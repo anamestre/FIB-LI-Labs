@@ -16,12 +16,12 @@
 % ?-return([1,2,5,13,17,35,157],361).  % writes 5 (since 1*13 + 2*17 + 2*157 = 361).
 
 return(L, A):- length(L, Size), length(Vars, Size),
-    		   Vars ins 0..A,
-    		   sum(Vars, NumCoins), % Quantitat de monedes
-    		   totalValueExp(Vars, L, Value),
-    		   Value #= A,
-    		   labeling([min(NumCoins)], Vars),
-    		   S is NumCoins, write(S), nl, !.
+                    Vars ins 0..A,
+                    sum(Vars, NumCoins), % Quantitat de monedes
+                    totalValueExp(Vars, L, Value),
+                    Value #= A,
+                    labeling([min(NumCoins)], Vars),
+                    S is NumCoins, write(S), nl, !.
 
 sum([], 0):- !.
 sum([V|Vars], Num):- sum(Vars, Num1), Num is V + Num1.
@@ -42,17 +42,18 @@ edges([1-2, 1-3, 2-3, 2-4, 2-5, 3-5]).
 numColors(3).
 
 main:- 	numVertices(N), edges(Edges), 
-	   	listOfNPrologVars(N,Vars), numVertices(K),
-		Vars ins 1..K,
-		makeConstraints(Edges,Vars),
-    	label(Vars),
-		write(Vars), nl.
+                listOfNPrologVars(N,Vars), numVertices(K),
+                Vars ins 1..K,
+                makeConstraints(Edges,Vars),
+                label(Vars),
+                write(Vars), nl.
 
 makeConstraints([], _).
-makeConstraints([X-Y|Edges], Vars):- nth1(X, Vars, ColorX),
-    								 nth1(Y, Vars, ColorY),
-    								 ColorX #\= ColorY,
-    								 makeConstraints(Edges, Vars).
+makeConstraints([X-Y|Edges], Vars):- 
+                nth1(X, Vars, ColorX),
+                nth1(Y, Vars, ColorY),
+                ColorX #\= ColorY,
+                makeConstraints(Edges, Vars).
                 
 listOfNPrologVars(N, Vars):- length(Vars, N).
 
@@ -66,23 +67,26 @@ listOfNPrologVars(N, Vars):- length(Vars, N).
 % Your solution should be short, clean and simple, without any comments.
 
 
-shortest([I1,J1], [I2,J2]):- path([I1, J1], [I2, J2], [[I1, J1]], Path),
-    						 between(1, 64, N),
-    						 length(Path, N), % Si només tenim 64 caselles, només pot passar per aquestes.
-    						 write(Path), nl.
+shortest([I1,J1], [I2,J2]):- 
+                path([I1, J1], [I2, J2], [[I1, J1]], Path),
+                between(1, 64, N),
+                length(Path, N), % Si només tenim 64 caselles, només pot passar per aquestes.
+                write(Path), nl.
 
 path(F, F, Path, Path):- !.
-path(From, To, UntilNow, TotalPath):- oneStep(From, NextStep),
-    								  \+member(NextStep, UntilNow),
-    								  path(NextStep, To, [NextStep|UntilNow], TotalPath).
+path(From, To, UntilNow, TotalPath):- 
+                oneStep(From, NextStep),
+                \+member(NextStep, UntilNow),
+                path(NextStep, To, [NextStep|UntilNow], TotalPath).
 
-oneStep([FromX, FromY], [ToX, ToY]):- member([StepX, StepY], [[1, 2], [2, 1]]),
-    								  member(SignX, [1, -1]),
-    								  member(SingY, [1, -1]),
-    								  ToX is SignX * StepX,
-    								  ToY is SignY * StepY,
-    								  between(1, 8, ToX),
-    								  between(1, 8, ToY).
+oneStep([FromX, FromY], [ToX, ToY]):- 
+                member([StepX, StepY], [[1, 2], [2, 1]]),
+                member(SignX, [1, -1]),
+                member(SignY, [1, -1]),
+                ToX is SignX * StepX + FromX,
+                ToY is SignY * StepY + FromY,
+                between(1, 8, ToX),
+                between(1, 8, ToY).
 
 
 
@@ -106,3 +110,38 @@ p:- num(SC1), num(SNC1),	 % Group 1, Smoker with cancer, smoker without cancer
     SC2 / (SC2 + SNC2) > NSC2 / (NSC2 + NSNC2),
     (SC1 + SC2) / (SC1 + SC2 + SNC1 + SNC2) < (NSC1 + NSC2) / (NSC1 + NSC2 + NSNC1 + NSNC2),
     write([SC1, SNC1, NSC1, NSNC1, SC2, SNC2, NSC2, NSNC2]), nl, fail.
+
+    
+% Spring 2014
+% Consider an n × n chessboard (for any natural number n > 3, not necessarily 8), where n defined by a Prolog clause boardSize(n). 
+% (for example, boardSize(14) if if n = 14). Define a Prolog predicate horse(I1,J1,I2,J2) that writes the shortest possible sequence of 
+% positions that a horse of chess traverses to go from initial position I1,J1 to final position I2,J2 on the board (positions are (row,column), 
+% each one in 1..n). It must write the sequence in the right order, the first position being [I1,J1], and write “no solution” if no such a sequence exists.
+
+boardSize(8).
+
+horse(I1, J1, I2, J2):- 
+                boardSize(N),
+                getPath([I1, J1], [I2, J2], [[I1, J1]], VarsPath, N),
+                N2 is N * N, 
+                between(0, N2, NewN),
+                length(VarsPath, NewN),
+                write(VarsPath), !.
+horse(_, _, _, _):- write('no solution'), !.
+
+
+getPath(From, From, Final, Final, _).
+getPath(From, To, ActualPath, FinalPath, N):-
+                nextMove(From, Next, N),
+                \+member(Next, ActualPath),
+                getPath(Next, To, [Next|ActualPath], FinalPath, N).
+
+                
+nextMove([I1-J1], [I2-J2], N):-
+                member([StepX, StepY], [[1, 2], [2, 1]]),
+                member(SignX, [1, -1]),
+                member(SignY, [1, -1]),
+                I2 is SignX * StepX + I1,
+                J2 is SignY * StepY + J1,
+                between(1, N, I2),
+                between(1, N, J2).
