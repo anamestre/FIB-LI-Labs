@@ -1,3 +1,11 @@
+
+/*
+	2) Completa el código del archivo color.pl de manera que el predicado color(K) 
+	determine si existe una K-coloración del grafo que definimos con los predicados edge(V1,V2). */
+
+:- use_module(library(clpfd)).
+
+
 nVertices(5).
 edge(1,2).
 edge(1,3).
