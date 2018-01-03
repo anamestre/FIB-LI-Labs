@@ -1,4 +1,12 @@
-:-use_module(library(clpfd)).
+% Constraint Logic Programming
+:- use_module(library(dif)).	% Sound inequality
+:- use_module(library(clpfd)).	% Finite domain constraints
+:- use_module(library(clpb)).	% Boolean constraints
+:- use_module(library(chr)).	% Constraint Handling Rules
+:- use_module(library(when)).	% Coroutining
+%:- use_module(library(clpq)).  % Constraints over rational numbers
+
+% Your program goes here
 
 nVertices(5).
 edge(1,2).
@@ -25,21 +33,28 @@ cover(K):-
     label(Vars), !,
     displaySolCover(Vars).
 
-coverEdges(Vars) :-
-    findall(V1-V2, edge(V1, V2), Edges),
-    coverEdges(Edges, Vars).
 
-coverEdges([], _).
-coverEdges([V1-V2|Edges], Vars) :-
-    nth1(V1, Vars, Var1),
-    nth1(V2, Vars, Var2),
-    Var1 #= 1 #\/ Var2 #= 1,
-    coverEdges(Edges, Vars).
+coverEdges(Vars):-
+    findall(X-Y, edge(X, Y), Lits),
+    cover(Lits, Vars).
 
-atMostKVertices(Vars, K) :-
-    expressSum(Vars, Expr),
-    Expr #=< K.
-    
-expressSum([V], V) :- !.
-expressSum([V|Vars], V + Expr) :-
-	expressSum(Vars, Expr).
+cover([], _).
+cover([L1-L2|Lits], Vars):-
+    nth1(L1, Vars, VarL1),
+    nth1(L2, Vars, VarL2),
+    makeConstraint(VarL1, VarL2),
+    cover(Lits, Vars).
+
+% Alternativa per la OR:
+%  Var1 #= 1 #\/ Var2 #= 1
+makeConstraint(V1, V2):-
+    V1 #= 1;
+    V2 #= 1.
+
+atMostKVertices(Vars, K):-
+    suma(Vars, SumVars),
+    SumVars #=< K.
+
+suma([], 0).
+suma([V|Vars], K + V):-
+    suma(Vars, K).
