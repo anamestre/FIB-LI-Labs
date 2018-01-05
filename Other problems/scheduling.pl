@@ -24,50 +24,62 @@ duration([8,6,7,5,2,3,8,6,2,6,1,2,6,4]).
 
 main :- schedule, nl, halt.
 
-schedule:- 
-	machines(M),
+schedule:-
+    machines(M),
     tasks(T), length(T, SizeT),
     SizeV is SizeT * M,
     length(Vars, SizeV),
     Vars ins 0..1,
     matrixByRows(Vars, M, Rows),
-    write('Hola'),
     transpose(Rows, Cols),
     duration(D),
-    sum(D, MaxDuration),
-    write('Hola2'),
+    sum_list(D, MaxDuration),
     Duration in 1..MaxDuration, % En realitat no pot estar en 1
-    write('Hola3'),
     makeConstraints(Cols, Rows, Duration),
-    write('Hola4'),
-    label(Vars).
+    labeling([min(Duration)], [Duration|Vars]),
+    printOutput(Rows, Duration).
+
+matrixByRows([], _, []).
+matrixByRows(Vars, Size, [Row|Rows]):-
+    split(Vars, Size, Row, RowsLeft),
+    matrixByRows(RowsLeft, Size, Rows).
+
+split(Vars, 0, [], Vars).
+split([V|Vars], Size, [V|Row], RowsLeft):-
+    Size1 is Size - 1,
+    split(Vars, Size1, Row, RowsLeft).
 
 
-matrixByRows([], _, []):- !.
-matrixByRows(Vars, SizeT, [Row|Rows]):-
-    split(Vars, SizeT, Row, RowsLeft),
-    matrixByRows(RowsLeft, SizeT, Rows).
-
-split(Vars, 0, [], Vars):- !.
-split([V|Vars], Size, [V|Row], Rows):-
-    Size1 is Size - 1, 
-    split(Vars, Size1, Row, Rows).
-
-makeConstraints(Cols, Rows, Duration):-
-    checkTasks(Rows),
-    checkMachines(Cols, Duration).
-
-checkTasks([]).
-checkTasks([R|Rows]):-
-    sum(R, #=, 1),
+makeConstraints(Cols, Rows, Dur):-
+    checkMachines(Cols, Dur),
     checkTasks(Rows).
 
 checkMachines([], _).
-checkMachines([C|Cols], Duration):-
+checkMachines([Ma|Machines], Dur):-
     duration(D),
-    scalar_product(D, C, #=<, Duration),
-    checkMachines(Cols, Duration).
+    scalar_product(D, Ma, #=<, Dur),
+    checkMachines(Machines, Dur).
 
-sum([], 0).
-sum([L|List], L + Sum):-
-    sum(List, Sum).
+checkTasks([]).
+checkTasks([T|Tasks]):-
+    sum(T, #=, 1),
+    checkTasks(Tasks).
+
+printOutput(Tasks, Dur):-
+    printTasks(Tasks, 1),
+    write(Dur).
+
+printTasks([], _).
+printTasks([T|Tasks], Num):-
+    write('Task number '),
+    write(Num),
+    getMachine(T, M, 1),
+    write(' is executed by Machine number '),
+    write(M), nl,
+    Num1 is Num + 1,
+    printTasks(Tasks, Num1).
+
+getMachine([1|_], M, M).
+getMachine([_|Tasks], M, It):-
+    It1 is It + 1,
+    getMachine(Tasks, M, It1).
