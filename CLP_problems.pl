@@ -307,7 +307,8 @@ friendsforever2:-
 ff(List, _, List).
 ff(List, I, L1):-
                 member(X, I), \+member(X, List),
-                friends(X, FriendsX), isSubset(List, FriendsX),
+                friends(X, FriendsX), 
+                isSubset(List, FriendsX), % és a dir, "si també em té ell com a amic".
                 intersection(I, [X|FriendsX], I1),
                 length(I1, K),
                 K >= 200,
