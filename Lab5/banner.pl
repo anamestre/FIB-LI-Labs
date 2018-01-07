@@ -51,7 +51,7 @@
 %% .555...111.
       	 
 
-:-include(input4). % Load input
+:-include(input7). % Load input
 :-dynamic(varNumber/3).
 symbolicOutput(0). % set to 1 to see symbolic output only; 0 otherwise.
 
@@ -73,94 +73,148 @@ cell(X,Y):-                 widthBanner(W), heightBanner(H), between(1,W,X), bet
 % Should be completed
 % Write clauses imposing also that at most K pieces can be used
 writeClauses(K):-
-    eachCeallAtMostOnePiece,
-    eachPieceAtMostOne,
-    pieceHasToBeRotated,
-    ifPieceStartsThenPieceCells,
-    ifPieceStartsThenPieceCells2,
-    ifBannerXthenPaint,
+    eachPieceAMO,
+    eachCellExacO,
+    ifStartsThenFills,
+    noIfStartsThenFills,
+    usedP,
+    pieceCanBeRotated,
+    ifRotatedThenFills,
+    noIfRotatedThenFills,
+    noMoreThanKpieces(K),
+    ifUsedThenNotFills,
+    eachCellNoBannerEmpty,
     true,!.
+
+    
+eachPieceAMO:- 
+    piece(P),
+    findall(pieceStarts-P-X-Y, cell(X, Y), Lits),
+    atMost(1, Lits), fail.
+eachPieceAMO.
+
+
+eachCellExacO:- 
+    contentsCellBanner(X, Y, 'x'), 
+    findall(pieceCell-P-X-Y, piece(P), Lits), 
+    exactly(1, Lits), fail.
+eachCellExacO.
+
+
+pieceCanBeRotated:- 
+    pieceSize(P, SizeX, SizeY), 
+    findall(pieceStarts-P-X-Y, pieceCanStartHere(P, X, Y, SizeY, SizeX), Lits), 
+    expressOr(rotated-P, Lits), fail.
+pieceCanBeRotated.
+                                   
+
+ifStartsThenFills:- 
+    pieceSize(P, SizeX, SizeY),  
+    contentsCellBanner(X, Y, 'x'), 
+    pieceCanStartHere(P, X, Y, SizeX, SizeY),
+    getCells(X, Y, X1, Y1, SizeX, SizeY), 
+    contentsCellBanner(X1, Y1, 'x'), 
+    negate(pieceStarts-P-X-Y, NegStart),
+    writeClause([NegStart, rotated-P, pieceCell-P-X1-Y1]), fail.
+ifStartsThenFills.
+
+
+ifRotatedThenFills:- 
+    pieceSize(P, SizeX, SizeY), 
+    contentsCellBanner(X, Y, 'x'), 
+    pieceCanStartHere(P, X, Y, SizeY, SizeX),
+    getCells(X, Y, X1, Y1, SizeY, SizeX), 
+    contentsCellBanner(X1, Y1, 'x'), 
+    negate(pieceStarts-P-X-Y, NegStart),
+    negate(rotated-P, NegRotated),
+    writeClause([NegStart, NegRotated, pieceCell-P-X1-Y1]), fail.
+ifRotatedThenFills.
+
+
+usedP:- 
+    pieceSize(P, SizeX, SizeY), 
+    findall(pieceStarts-P-X-Y, (pieceCanStartHere(P, X, Y, SizeX, SizeY);  pieceCanStartHere(P, X, Y, SizeY, SizeX)), Lits),
+    expressOr(used-P, Lits), fail.
+usedP.
+
+ifUsedThenNotFills:-
+    cell(X, Y),
+    piece(P),
+    negate(pieceCell-P-X-Y, NegCell),
+    writeClause([used-P, NegCell]), fail.
+ifUsedThenNotFills.
+
+
+noIfStartsThenFills:- 
+    pieceSize(P, SizeX, SizeY),  
+    contentsCellBanner(X, Y, 'x'), 
+    pieceCanStartHere(P, X, Y, SizeX, SizeY),
+    
+    cell(X1, Y1),
+    \+getCells(X, Y, X1, Y1, SizeX, SizeY), 
+    
+    negate(pieceStarts-P-X-Y, NegStart),
+    writeClause([NegStart, rotated-P, \+pieceCell-P-X1-Y1]), fail.
+noIfStartsThenFills.
+
+
+
+noIfRotatedThenFills:- 
+    pieceSize(P, SizeX, SizeY), 
+    contentsCellBanner(X, Y, 'x'), 
+    pieceCanStartHere(P, X, Y, SizeY, SizeX),
+    
+    cell(X1, Y1),
+    \+getCells(X, Y, X1, Y1, SizeY, SizeX), 
+    
+    negate(pieceStarts-P-X-Y, NegStart),
+    negate(rotated-P, NegRotated),
+    negate(pieceCell-P-X1-Y1, NegCell),
+    
+    writeClause([NegStart, NegRotated, NegCell]), fail.
+noIfRotatedThenFills.
+
+eachCellNoBannerEmpty:-
+    contentsCellBanner(X, Y, '.'),
+    piece(P),
+    writeClause([\+pieceCell-P-X-Y]), fail.
+eachCellNoBannerEmpty.
+
+
+
+% %%%%%%%%%%  Aux predicates %%%%%%%%%%%
+
+pieceCanStartHere(_,X, Y, SizeW, SizeH):-
+    contentsCellBanner(X, Y, 'x'),
+    widthBanner(W),
+    heightBanner(H),
+    MaxW is W - SizeW + 1,
+    MaxH is H - SizeH + 1,
+    between(1, MaxW, X),
+    between(1, MaxH, Y),
+    findall(X1-Y1, getCells(X, Y, X1, Y1, SizeW, SizeH), Lits),
+    Size is SizeW * SizeH,
+    length(Lits, Size).
+    
+getCells(Xstart, Ystart, X, Y, SizeW, SizeH):-
+    FinalX is Xstart + SizeW - 1,
+    FinalY is Ystart + SizeH - 1, 
+    contentsCellBanner(X, Y, 'x'),
+    between(Xstart, FinalX, X),
+    between(Ystart, FinalY, Y).
+
+
+noMoreThanKpieces(K):-
+    findall(used-P, piece(P), Lits),
+    atMost(K, Lits),
+    fail.
+noMoreThanKpieces(_).
 
 % SHOULD BE MODIFIED!!!!
 % Given model M, computes K (number of pieces used in the model)
 piecesUsed(M,K):-
-    K is 20, 
-    true.
-
-    
-eachCeallAtMostOnePiece:- cell(X, Y), findall(pieceCell-P-X-Y, piece(P), Lits), atMost(1, Lits), fail.
-eachCeallAtMostOnePiece.
-
-/*
-fitsBanner(P, X, Y):- cell(X, Y),
-                                 pieceSize(P, SizeW, SizeH), 
-                                 EndW is X + SizeW - 1,
-                                 EndH is Y + SizeH - 1,
-                                 cell(EndW, EndH). */
-                                 
-fitsBannerNR(P, Xstart, Ystart):- pieceSize(P, SizeW, SizeH),
-                                                widthBanner(Wbanner),
-                                                heightBanner(Hbanner),
-                                                EndW is Wbanner - SizeW + 1,
-                                                EndH is Hbanner - SizeH + 1, 
-                                                between(1, EndW, Xstart),
-                                                between(1, EndH, Ystart).
-                                                
-fitsBannerR(P, Xstart, Ystart):- pieceSize(P, SizeW, SizeH),
-                                                widthBanner(Wbanner),
-                                                heightBanner(Hbanner),
-                                                EndW is Wbanner - SizeH + 1,
-                                                EndH is Hbanner - SizeW + 1, 
-                                                between(1, EndW, Xstart),
-                                                between(1, EndH, Ystart). 
-                                                
-fitsBanner(P, X, Y):- fitsBannerNR(P, X, Y).
-fitsBanner(P, X, Y):- fitsBannerR(P, X, Y).
-
-
-% TODO: potser hauria de tenir també en compte que en aquella casella s'hi pugui posar una peça ( X / . )
-eachPieceAtMostOne:- piece(P), findall(pieceStarts-P-X-Y, fitsBanner(P, X, Y), Lits), atMost(1, Lits), fail.
-eachPieceAtMostOne.
-
-pieceHasToBeRotated:- piece(P), cell(X, Y), \+fitsBannerNR(P, X, Y), fitsBannerR(P, X, Y),
-                                      negate(pieceStarts-P-X-Y, NotPiece),  writeClause([NotPiece, rotated-P]), fail.
-pieceHasToBeRotated.
-
-getCellPositions(P, Wstart, Hstart, W1, H1):- pieceSize(P, Wsize, Hsize),
-                                                                       EndW is Wstart + Wsize - 1,
-                                                                       EndH is Hstart + Hsize - 1,
-                                                                       cell(EndW, EndH),
-                                                                       between(Hstart, EndH, H1),
-                                                                       between(Wstart, EndW, W1).
-                                                                       
-getCellPositionsR(P, Wstart, Hstart, W1, H1):- pieceSize(P, Wsize, Hsize),
-                                                                       EndW is Wstart + Hsize - 1,
-                                                                       EndH is Hstart + Wsize - 1,
-                                                                       cell(EndW, EndH),
-                                                                       between(Hstart, EndH, H1),
-                                                                       between(Wstart, EndW, W1).
-
-% TODO: potser hauria de comprovar que les celes són diferents.
-ifPieceStartsThenPieceCells:- piece(P), cell(Wstart, Hstart), 
-                                               contentsCellBanner(Wstart, Hstart, 'x'), cell(Wi, Hi),
-                                               getCellPositions(P, Wstart, Hstart, Wi, Hi),
-                                               contentsCellBanner(Wi, Hi, 'x'),
-                                               negate(pieceStarts-P-Wstart-Hstart, NegStart),
-                                               writeClause([NegStart, rotated-P, pieceCell-P-Wi-Hi]), fail.
-ifPieceStartsThenPieceCells.
-                                               
-ifPieceStartsThenPieceCells2:- piece(P), cell(Wstart, Hstart), 
-                                               contentsCellBanner(Wstart, Hstart, 'x'), cell(Wi, Hi),
-                                               getCellPositionsR(P, Wstart, Hstart, Wi, Hi),
-                                               contentsCellBanner(Wi, Hi, 'x'),
-                                               negate(pieceStarts-P-Wstart-Hstart, NegStart),
-                                               negate(rotated-P, NotR),
-                                               writeClause([NegStart, NotR, pieceCell-P-Wi-Hi]), fail.
-ifPieceStartsThenPieceCells2.
-    
-ifBannerXthenPaint:- contentsCellBanner(X, Y, '.'),
-                                  writeClause([\+pieceCell-_-X-Y]), fail.
-ifBannerXthenPaint.
+    findall(P, member(used-P, M), Lits),
+    length(Lits, K), !.
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DISPLAYSOL:
 
