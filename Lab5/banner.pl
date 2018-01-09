@@ -75,15 +75,17 @@ cell(X,Y):-                 widthBanner(W), heightBanner(H), between(1,W,X), bet
 writeClauses(K):-
     eachPieceAMO,
     eachCellExacO,
+    noMoreThanKpieces(K),
+    
     ifStartsThenFills,
     noIfStartsThenFills,
-    usedP,
+    
     pieceCanBeRotated,
     ifRotatedThenFills,
     noIfRotatedThenFills,
-    noMoreThanKpieces(K),
+    
+    usedP,
     ifUsedThenNotFills,
-    eachCellNoBannerEmpty,
     true,!.
 
     
@@ -110,10 +112,7 @@ pieceCanBeRotated.
 
 ifStartsThenFills:- 
     pieceSize(P, SizeX, SizeY),  
-    contentsCellBanner(X, Y, 'x'), 
-    pieceCanStartHere(P, X, Y, SizeX, SizeY),
     getCells(X, Y, X1, Y1, SizeX, SizeY), 
-    contentsCellBanner(X1, Y1, 'x'), 
     negate(pieceStarts-P-X-Y, NegStart),
     writeClause([NegStart, rotated-P, pieceCell-P-X1-Y1]), fail.
 ifStartsThenFills.
@@ -121,10 +120,7 @@ ifStartsThenFills.
 
 ifRotatedThenFills:- 
     pieceSize(P, SizeX, SizeY), 
-    contentsCellBanner(X, Y, 'x'), 
-    pieceCanStartHere(P, X, Y, SizeY, SizeX),
     getCells(X, Y, X1, Y1, SizeY, SizeX), 
-    contentsCellBanner(X1, Y1, 'x'), 
     negate(pieceStarts-P-X-Y, NegStart),
     negate(rotated-P, NegRotated),
     writeClause([NegStart, NegRotated, pieceCell-P-X1-Y1]), fail.
@@ -132,8 +128,10 @@ ifRotatedThenFills.
 
 
 usedP:- 
-    pieceSize(P, SizeX, SizeY), 
-    findall(pieceStarts-P-X-Y, (pieceCanStartHere(P, X, Y, SizeX, SizeY);  pieceCanStartHere(P, X, Y, SizeY, SizeX)), Lits),
+    %pieceSize(P, SizeX, SizeY), 
+    %findall(pieceStarts-P-X-Y, (pieceCanStartHere(P, X, Y, SizeX, SizeY);  pieceCanStartHere(P, X, Y, SizeY, SizeX)), Lits),
+    piece(P),
+    findall(pieceStarts-P-X-Y, cell(X,Y), Lits),
     expressOr(used-P, Lits), fail.
 usedP.
 
@@ -147,9 +145,8 @@ ifUsedThenNotFills.
 
 noIfStartsThenFills:- 
     pieceSize(P, SizeX, SizeY),  
-    contentsCellBanner(X, Y, 'x'), 
-    pieceCanStartHere(P, X, Y, SizeX, SizeY),
     
+    cell(X,Y),
     cell(X1, Y1),
     \+getCells(X, Y, X1, Y1, SizeX, SizeY), 
     
@@ -158,12 +155,10 @@ noIfStartsThenFills:-
 noIfStartsThenFills.
 
 
-
 noIfRotatedThenFills:- 
     pieceSize(P, SizeX, SizeY), 
-    contentsCellBanner(X, Y, 'x'), 
-    pieceCanStartHere(P, X, Y, SizeY, SizeX),
     
+    cell(X,Y),
     cell(X1, Y1),
     \+getCells(X, Y, X1, Y1, SizeY, SizeX), 
     
@@ -174,13 +169,11 @@ noIfRotatedThenFills:-
     writeClause([NegStart, NegRotated, NegCell]), fail.
 noIfRotatedThenFills.
 
-eachCellNoBannerEmpty:-
-    contentsCellBanner(X, Y, '.'),
-    piece(P),
-    writeClause([\+pieceCell-P-X-Y]), fail.
-eachCellNoBannerEmpty.
-
-
+noMoreThanKpieces(K):-
+    findall(used-P, piece(P), Lits),
+    atMost(K, Lits),
+    fail.
+noMoreThanKpieces(_).
 
 % %%%%%%%%%%  Aux predicates %%%%%%%%%%%
 
@@ -197,18 +190,13 @@ pieceCanStartHere(_,X, Y, SizeW, SizeH):-
     length(Lits, Size).
     
 getCells(Xstart, Ystart, X, Y, SizeW, SizeH):-
+    cell(Xstart, Ystart),
     FinalX is Xstart + SizeW - 1,
     FinalY is Ystart + SizeH - 1, 
     contentsCellBanner(X, Y, 'x'),
     between(Xstart, FinalX, X),
     between(Ystart, FinalY, Y).
 
-
-noMoreThanKpieces(K):-
-    findall(used-P, piece(P), Lits),
-    atMost(K, Lits),
-    fail.
-noMoreThanKpieces(_).
 
 % SHOULD BE MODIFIED!!!!
 % Given model M, computes K (number of pieces used in the model)
