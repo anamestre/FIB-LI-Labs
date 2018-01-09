@@ -80,7 +80,7 @@ writeClauses(K):-
     ifStartsThenFills,
     noIfStartsThenFills,
     
-    pieceCanBeRotated,
+    %pieceCanBeRotated,
     ifRotatedThenFills,
     noIfRotatedThenFills,
     
@@ -128,10 +128,8 @@ ifRotatedThenFills.
 
 
 usedP:- 
-    %pieceSize(P, SizeX, SizeY), 
-    %findall(pieceStarts-P-X-Y, (pieceCanStartHere(P, X, Y, SizeX, SizeY);  pieceCanStartHere(P, X, Y, SizeY, SizeX)), Lits),
-    piece(P),
-    findall(pieceStarts-P-X-Y, cell(X,Y), Lits),
+    pieceSize(P, SizeX, SizeY), 
+    findall(pieceStarts-P-X-Y, (pieceCanStartHere(P, X, Y, SizeX, SizeY);  pieceCanStartHere(P, X, Y, SizeY, SizeX)), Lits),
     expressOr(used-P, Lits), fail.
 usedP.
 
